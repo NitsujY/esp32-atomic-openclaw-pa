@@ -8,6 +8,7 @@
 #include "audio_transport/audio_transport.h"
 #include "audio_playback/audio_playback.h"
 #include "esp_err.h"
+#include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"
 
 typedef audio_playback_buffer_t bridge_client_audio_t;

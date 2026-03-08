@@ -7,6 +7,7 @@
 #include "app_state/app_state.h"
 #include "config/app_config.h"
 #include "driver/i2s.h"
+#include "esp_check.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/queue.h"

@@ -7,7 +7,7 @@
 #include "audio_capture/audio_capture.h"
 #include "config/app_config.h"
 
-static uint8_t s_transport_buffer[APP_CONFIG_MAX_UPLOAD_BYTES];
+static uint8_t s_transport_buffer[APP_CONFIG_TRANSPORT_BUFFER_BYTES];
 static size_t s_transport_length;
 static size_t s_transport_high_watermark;
 
@@ -56,7 +56,7 @@ void audio_transport_reset(void)
 
 esp_err_t audio_transport_finalize_from_capture(audio_transport_utterance_t *utterance)
 {
-    size_t pcm_length = audio_capture_drain(s_transport_buffer, APP_CONFIG_MAX_PCM_BYTES,
+    size_t pcm_length = audio_capture_drain(s_transport_buffer, APP_CONFIG_CAPTURE_BUFFER_BYTES,
         pdMS_TO_TICKS(100));
 
     if (pcm_length > s_transport_high_watermark) {

@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "config/app_config.h"
+#include "esp_check.h"
 #include "esp_event.h"
 #include "esp_log.h"
 #include "esp_netif.h"
@@ -18,15 +19,16 @@ typedef struct {
     app_mode_t mode;
     size_t length;
     bool is_wav;
-    uint8_t payload[APP_CONFIG_MAX_UPLOAD_BYTES];
 } bridge_request_t;
+
+#define BRIDGE_STUB_RESPONSE_BYTES ((APP_CONFIG_SAMPLE_RATE * sizeof(int16_t)) / 2 + 44)
 
 static const char *TAG = "bridge_client";
 
 static QueueHandle_t s_app_event_queue;
 static QueueHandle_t s_request_queue;
 static bridge_client_audio_t s_last_audio;
-static uint8_t s_last_audio_buffer[APP_CONFIG_MAX_UPLOAD_BYTES];
+static uint8_t s_last_audio_buffer[BRIDGE_STUB_RESPONSE_BYTES];
 
 static void write_le16(uint8_t *buffer, uint16_t value)
 {
@@ -174,11 +176,8 @@ esp_err_t bridge_client_submit_utterance(app_mode_t mode, const audio_transport_
         .is_wav = utterance->is_wav,
     };
 
-    if (utterance->length > sizeof(request.payload)) {
-        return ESP_ERR_INVALID_SIZE;
-    }
+    (void) utterance;
 
-    memcpy(request.payload, utterance->data, utterance->length);
     return xQueueSend(s_request_queue, &request, pdMS_TO_TICKS(50)) == pdTRUE ? ESP_OK : ESP_ERR_TIMEOUT;
 }
 

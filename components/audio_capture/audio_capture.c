@@ -7,6 +7,7 @@
 
 #include "config/app_config.h"
 #include "driver/i2s.h"
+#include "esp_check.h"
 #include "esp_log.h"
 #include "freertos/FreeRTOS.h"
 #include "freertos/ringbuf.h"
@@ -45,8 +46,8 @@ static void capture_task(void *arg)
             continue;
         }
 
-        if (xRingbufferGetCurFreeSize(s_ringbuffer) < (APP_CONFIG_MAX_PCM_BYTES - s_high_watermark)) {
-            s_high_watermark = APP_CONFIG_MAX_PCM_BYTES - xRingbufferGetCurFreeSize(s_ringbuffer);
+        if (xRingbufferGetCurFreeSize(s_ringbuffer) < (APP_CONFIG_CAPTURE_BUFFER_BYTES - s_high_watermark)) {
+            s_high_watermark = APP_CONFIG_CAPTURE_BUFFER_BYTES - xRingbufferGetCurFreeSize(s_ringbuffer);
         }
     }
 }
@@ -90,7 +91,7 @@ static esp_err_t maybe_init_i2s(void)
 
 esp_err_t audio_capture_init(void)
 {
-    s_ringbuffer = xRingbufferCreate(APP_CONFIG_MAX_PCM_BYTES, RINGBUF_TYPE_BYTEBUF);
+    s_ringbuffer = xRingbufferCreate(APP_CONFIG_CAPTURE_BUFFER_BYTES, RINGBUF_TYPE_BYTEBUF);
     if (s_ringbuffer == NULL) {
         return ESP_ERR_NO_MEM;
     }
