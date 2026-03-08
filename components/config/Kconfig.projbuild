@@ -1,0 +1,105 @@
+menu "OpenClaw config"
+
+    config OPENCLAW_WIFI_SSID
+        string "WiFi SSID"
+        default ""
+
+    config OPENCLAW_WIFI_PASSWORD
+        string "WiFi password"
+        default ""
+
+    config OPENCLAW_BRIDGE_URL
+        string "Bridge base URL"
+        default "http://127.0.0.1:3001"
+
+    config OPENCLAW_BRIDGE_API_KEY
+        string "Bridge API key"
+        default ""
+
+    config OPENCLAW_DEVICE_ID
+        string "Device ID"
+        default "atoms3-dev"
+
+    config OPENCLAW_DEFAULT_MODE_WORK
+        bool "Default boot mode is Work"
+        default y
+
+    config OPENCLAW_AUDIO_SAMPLE_RATE
+        int "Audio sample rate"
+        range 8000 48000
+        default 16000
+
+    config OPENCLAW_BUTTON_DEBOUNCE_MS
+        int "Button debounce in milliseconds"
+        range 10 500
+        default 40
+
+    config OPENCLAW_PTT_MIN_DURATION_MS
+        int "Minimum PTT duration in milliseconds"
+        range 10 5000
+        default 150
+
+    config OPENCLAW_NETWORK_TIMEOUT_MS
+        int "Network timeout in milliseconds"
+        range 1000 120000
+        default 15000
+
+    config OPENCLAW_RESPONSE_POLL_MS
+        int "Bridge poll interval in milliseconds"
+        range 100 10000
+        default 1000
+
+    config OPENCLAW_MAX_UTTERANCE_MS
+        int "Maximum utterance length in milliseconds"
+        range 1000 60000
+        default 12000
+
+    config OPENCLAW_WRAP_WAV
+        bool "Wrap uploaded PCM in WAV"
+        default n
+
+    config OPENCLAW_ENABLE_BRIDGE_STUB
+        bool "Use local bridge stub instead of HTTP client"
+        default y
+
+    config OPENCLAW_PIN_BUTTON_SIDE
+        int "Side button GPIO"
+        range -1 48
+        default -1
+
+    config OPENCLAW_PIN_BUTTON_CENTER
+        int "Center button GPIO"
+        range -1 48
+        default 41
+
+    config OPENCLAW_PIN_I2S_MIC_BCK
+        int "I2S microphone BCK GPIO"
+        range -1 48
+        default -1
+
+    config OPENCLAW_PIN_I2S_MIC_WS
+        int "I2S microphone WS GPIO"
+        range -1 48
+        default -1
+
+    config OPENCLAW_PIN_I2S_MIC_DATA
+        int "I2S microphone DATA GPIO"
+        range -1 48
+        default -1
+
+    config OPENCLAW_PIN_I2S_SPK_BCK
+        int "I2S speaker BCK GPIO"
+        range -1 48
+        default -1
+
+    config OPENCLAW_PIN_I2S_SPK_WS
+        int "I2S speaker WS GPIO"
+        range -1 48
+        default -1
+
+    config OPENCLAW_PIN_I2S_SPK_DATA
+        int "I2S speaker DATA GPIO"
+        range -1 48
+        default -1
+
+endmenu

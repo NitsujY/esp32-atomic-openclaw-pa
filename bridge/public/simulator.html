@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>OpenClaw UI Simulator</title>
+    <style>
+      :root {
+        --bg: #0f1720;
+        --panel: #152232;
+        --panel-2: #1d2e43;
+        --text: #e8f0f7;
+        --muted: #98afc2;
+        --accent: #4fd1c5;
+        --accent-2: #ff8cc6;
+        --warning: #ff7b72;
+        --screen: #101820;
+        --screen-glow: rgba(79, 209, 197, 0.18);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        grid-template-columns: minmax(320px, 420px) minmax(320px, 1fr);
+        background:
+          radial-gradient(circle at top left, rgba(79, 209, 197, 0.12), transparent 35%),
+          radial-gradient(circle at bottom right, rgba(255, 140, 198, 0.12), transparent 30%),
+          var(--bg);
+        color: var(--text);
+        font-family: "SF Mono", "IBM Plex Mono", "Fira Code", monospace;
+      }
+
+      .panel {
+        padding: 24px;
+        background: rgba(21, 34, 50, 0.92);
+        border-right: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .panel h1,
+      .stage h2 {
+        margin: 0 0 10px;
+        font-size: 1rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .panel p {
+        margin: 0 0 18px;
+        color: var(--muted);
+        line-height: 1.45;
+      }
+
+      .control-group {
+        margin-bottom: 20px;
+      }
+
+      .control-group label {
+        display: block;
+        margin-bottom: 8px;
+        color: var(--muted);
+        font-size: 0.85rem;
+      }
+
+      .segmented,
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+
+      button,
+      textarea,
+      input {
+        font: inherit;
+      }
+
+      .chip,
+      .segmented button,
+      .action-button {
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: var(--panel-2);
+        color: var(--text);
+        border-radius: 999px;
+        padding: 8px 12px;
+        cursor: pointer;
+      }
+
+      .segmented button.active,
+      .chip.active,
+      .action-button.active {
+        background: linear-gradient(135deg, var(--accent), #4c9fe7);
+        color: #04131a;
+        border-color: transparent;
+      }
+
+      textarea,
+      input[type="text"] {
+        width: 100%;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        background: #0c1520;
+        color: var(--text);
+        padding: 12px 14px;
+      }
+
+      textarea {
+        min-height: 84px;
+        resize: vertical;
+      }
+
+      .stage {
+        display: grid;
+        place-items: center;
+        padding: 24px;
+      }
+
+      .stage-wrap {
+        width: min(92vw, 760px);
+        display: grid;
+        gap: 18px;
+        justify-items: center;
+      }
+
+      .device {
+        width: 360px;
+        max-width: 100%;
+        padding: 22px;
+        border-radius: 36px;
+        background: linear-gradient(180deg, #1f2937, #111827);
+        box-shadow: 0 24px 80px rgba(0, 0, 0, 0.45);
+      }
+
+      .screen {
+        position: relative;
+        aspect-ratio: 1;
+        border-radius: 28px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 30%, var(--screen-glow), transparent 45%),
+          linear-gradient(180deg, #121c26, var(--screen));
+        border: 2px solid rgba(255, 255, 255, 0.06);
+      }
+
+      .scanlines::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 0.025) 0,
+          rgba(255, 255, 255, 0.025) 1px,
+          transparent 1px,
+          transparent 5px
+        );
+        pointer-events: none;
+      }
+
+      .mode-badge,
+      .state-badge,
+      .wifi-badge {
+        position: absolute;
+        border-radius: 999px;
+        padding: 6px 10px;
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .mode-badge {
+        top: 12px;
+        left: 12px;
+        background: rgba(255, 255, 255, 0.08);
+      }
+
+      .wifi-badge {
+        top: 12px;
+        right: 12px;
+        background: rgba(79, 209, 197, 0.14);
+      }
+
+      .state-badge {
+        bottom: 12px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: rgba(255, 255, 255, 0.1);
+      }
+
+      .subtitle {
+        position: absolute;
+        left: 18px;
+        right: 18px;
+        bottom: 44px;
+        text-align: center;
+        color: var(--muted);
+        font-size: 0.82rem;
+        min-height: 2.5em;
+      }
+
+      canvas {
+        width: 100%;
+        height: 100%;
+        image-rendering: pixelated;
+      }
+
+      .legend {
+        width: min(92vw, 760px);
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 12px;
+      }
+
+      .legend-card {
+        border-radius: 18px;
+        background: rgba(21, 34, 50, 0.78);
+        padding: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.08);
+      }
+
+      .legend-card h3 {
+        margin: 0 0 8px;
+        font-size: 0.86rem;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+      }
+
+      .legend-card p {
+        margin: 0;
+        color: var(--muted);
+        font-size: 0.84rem;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 980px) {
+        body {
+          grid-template-columns: 1fr;
+        }
+
+        .panel {
+          border-right: 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <aside class="panel">
+      <h1>OpenClaw UI Simulator</h1>
+      <p>
+        Preview mode switching, runtime states, prompt-driven reactions, and a small-screen avatar
+        without flashing the AtomS3.
+      </p>
+
+      <div class="control-group">
+        <label>Mode</label>
+        <div class="segmented" id="modeButtons"></div>
+      </div>
+
+      <div class="control-group">
+        <label>State</label>
+        <div class="segmented" id="stateButtons"></div>
+      </div>
+
+      <div class="control-group">
+        <label>Emote</label>
+        <div class="chips" id="emoteButtons"></div>
+      </div>
+
+      <div class="control-group">
+        <label>Prompt Text</label>
+        <textarea id="promptText" placeholder="Type a prompt or assistant reply to drive mood reactions"></textarea>
+      </div>
+
+      <div class="control-group">
+        <label>Subtitle</label>
+        <input id="subtitleText" type="text" value="Ready for voice input" />
+      </div>
+
+      <div class="control-group">
+        <label>Simulator Actions</label>
+        <div class="chips">
+          <button class="action-button" id="autoRotateButton">Auto Idle Rotation</button>
+          <button class="action-button" id="promptReactButton">React To Prompt</button>
+          <button class="action-button" id="randomSceneButton">Random Scene</button>
+        </div>
+      </div>
+    </aside>
+
+    <main class="stage">
+      <div class="stage-wrap">
+        <div class="device">
+          <div class="screen scanlines">
+            <div class="mode-badge" id="modeBadge">WORK</div>
+            <div class="wifi-badge">WiFi</div>
+            <canvas id="screenCanvas" width="240" height="240"></canvas>
+            <div class="subtitle" id="subtitle"></div>
+            <div class="state-badge" id="stateBadge">idle</div>
+          </div>
+        </div>
+
+        <div class="legend">
+          <article class="legend-card">
+            <h3>Work Avatar</h3>
+            <p>Robot face, angular features, restrained motion, focused status cues.</p>
+          </article>
+          <article class="legend-card">
+            <h3>Kid Avatar</h3>
+            <p>Unicorn face, softer silhouette, friendly blush, more playful reactions.</p>
+          </article>
+          <article class="legend-card">
+            <h3>Idle Rotation</h3>
+            <p>Neutral blink, look left, look right, smile, sleepy blink. Hold each scene for a few seconds.</p>
+          </article>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const modes = ["work", "kid"];
+      const states = ["idle", "listening", "thinking", "playing", "sleep", "love", "error"];
+      const emotes = [
+        "neutral",
+        "blink",
+        "smile",
+        "look_left",
+        "look_right",
+        "sleep",
+        "love",
+        "wink",
+        "surprised",
+        "curious",
+      ];
+
+      const modeBadge = document.getElementById("modeBadge");
+      const stateBadge = document.getElementById("stateBadge");
+      const subtitle = document.getElementById("subtitle");
+      const subtitleText = document.getElementById("subtitleText");
+      const promptText = document.getElementById("promptText");
+      const autoRotateButton = document.getElementById("autoRotateButton");
+      const promptReactButton = document.getElementById("promptReactButton");
+      const randomSceneButton = document.getElementById("randomSceneButton");
+      const canvas = document.getElementById("screenCanvas");
+      const ctx = canvas.getContext("2d");
+
+      const simulatorState = {
+        mode: "work",
+        state: "idle",
+        emote: "neutral",
+        autoRotate: false,
+        beat: 0,
+      };
+
+      const modeButtons = document.getElementById("modeButtons");
+      const stateButtons = document.getElementById("stateButtons");
+      const emoteButtons = document.getElementById("emoteButtons");
+
+      const randomFrom = (items) => items[Math.floor(Math.random() * items.length)];
+
+      function makeButton(label, group, onClick) {
+        const button = document.createElement("button");
+        button.textContent = label;
+        button.addEventListener("click", onClick);
+        group.appendChild(button);
+        return button;
+      }
+
+      const modeButtonMap = new Map();
+      const stateButtonMap = new Map();
+      const emoteButtonMap = new Map();
+
+      modes.forEach((mode) => {
+        modeButtonMap.set(
+          mode,
+          makeButton(mode, modeButtons, () => {
+            simulatorState.mode = mode;
+            renderButtons();
+            render();
+          }),
+        );
+      });
+
+      states.forEach((state) => {
+        stateButtonMap.set(
+          state,
+          makeButton(state, stateButtons, () => {
+            simulatorState.state = state;
+            if (state === "listening") simulatorState.emote = "curious";
+            if (state === "thinking") simulatorState.emote = randomFrom(["look_left", "look_right", "blink"]);
+            if (state === "playing") simulatorState.emote = "smile";
+            if (state === "sleep") simulatorState.emote = "sleep";
+            if (state === "love") simulatorState.emote = "love";
+            if (state === "error") simulatorState.emote = "surprised";
+            renderButtons();
+            render();
+          }),
+        );
+      });
+
+      emotes.forEach((emote) => {
+        emoteButtonMap.set(
+          emote,
+          makeButton(emote, emoteButtons, () => {
+            simulatorState.emote = emote;
+            renderButtons();
+            render();
+          }),
+        );
+      });
+
+      function renderButtons() {
+        modeButtonMap.forEach((button, mode) => button.classList.toggle("active", mode === simulatorState.mode));
+        stateButtonMap.forEach((button, state) => button.classList.toggle("active", state === simulatorState.state));
+        emoteButtonMap.forEach((button, emote) => button.classList.toggle("active", emote === simulatorState.emote));
+        autoRotateButton.classList.toggle("active", simulatorState.autoRotate);
+      }
+
+      function keywordReaction(text) {
+        const value = text.toLowerCase();
+        if (/(love|heart|hug)/.test(value)) return "love";
+        if (/(sleep|night|bed|dream)/.test(value)) return "sleep";
+        if (/(wow|amazing|surprise)/.test(value)) return "surprised";
+        if (/(look|see|watch)/.test(value)) return randomFrom(["look_left", "look_right", "curious"]);
+        if (/(happy|great|yay|nice|good)/.test(value)) return "smile";
+        return randomFrom(["blink", "curious", "smile"]);
+      }
+
+      function drawPixelRect(x, y, w, h, color) {
+        ctx.fillStyle = color;
+        ctx.fillRect(x, y, w, h);
+      }
+
+      function drawEyes({ leftX, rightX, y, pupilOffsetX, closed, color, pupilColor }) {
+        if (closed) {
+          drawPixelRect(leftX - 12, y, 24, 4, color);
+          drawPixelRect(rightX - 12, y, 24, 4, color);
+          return;
+        }
+
+        drawPixelRect(leftX - 14, y - 10, 28, 20, color);
+        drawPixelRect(rightX - 14, y - 10, 28, 20, color);
+        drawPixelRect(leftX - 4 + pupilOffsetX, y - 4, 8, 8, pupilColor);
+        drawPixelRect(rightX - 4 + pupilOffsetX, y - 4, 8, 8, pupilColor);
+      }
+
+      function drawRobot(emote) {
+        const headColor = "#98c7d4";
+        const dark = "#0d2230";
+        const accent = "#56f3dd";
+        const cheek = "#ffca85";
+        const closed = emote === "blink" || emote === "sleep";
+        const pupilOffsetX = emote === "look_left" ? -6 : emote === "look_right" ? 6 : 0;
+
+        drawPixelRect(70, 48, 100, 16, "#3dd3ff");
+        drawPixelRect(110, 28, 20, 24, "#b7f0ff");
+        drawPixelRect(96, 52, 48, 120, headColor);
+        drawPixelRect(80, 68, 80, 92, headColor);
+        drawPixelRect(72, 76, 96, 76, headColor);
+        drawEyes({ leftX: 102, rightX: 138, y: 102, pupilOffsetX, closed, color: dark, pupilColor: accent });
+
+        if (emote === "love") {
+          drawPixelRect(92, 82, 12, 12, cheek);
+          drawPixelRect(136, 82, 12, 12, cheek);
+        }
+
+        if (emote === "smile" || emote === "playing") {
+          drawPixelRect(98, 132, 44, 6, dark);
+          drawPixelRect(106, 138, 28, 6, dark);
+        } else if (emote === "surprised") {
+          drawPixelRect(112, 128, 16, 20, dark);
+        } else if (emote === "sleep") {
+          drawPixelRect(98, 136, 44, 4, dark);
+        } else {
+          drawPixelRect(104, 134, 32, 4, dark);
+        }
+      }
+
+      function drawUnicorn(emote) {
+        const face = "#fff2ea";
+        const mane = "#ff90c6";
+        const mane2 = "#7fdbff";
+        const eye = "#233446";
+        const blush = "#ffb0d4";
+        const horn = "#ffd766";
+        const closed = emote === "blink" || emote === "sleep";
+        const pupilOffsetX = emote === "look_left" ? -6 : emote === "look_right" ? 6 : 0;
+
+        drawPixelRect(106, 38, 12, 28, horn);
+        drawPixelRect(100, 50, 24, 12, horn);
+        drawPixelRect(72, 74, 24, 26, mane);
+        drawPixelRect(144, 74, 24, 26, mane2);
+        drawPixelRect(84, 66, 72, 92, face);
+        drawPixelRect(72, 86, 96, 62, face);
+        drawEyes({ leftX: 102, rightX: 138, y: 108, pupilOffsetX, closed, color: eye, pupilColor: "#ffffff" });
+        drawPixelRect(92, 128, 12, 8, blush);
+        drawPixelRect(136, 128, 12, 8, blush);
+
+        if (emote === "smile" || emote === "playing" || emote === "love") {
+          drawPixelRect(104, 142, 30, 4, eye);
+          drawPixelRect(110, 146, 18, 4, eye);
+        } else if (emote === "surprised") {
+          drawPixelRect(112, 138, 14, 18, eye);
+        } else if (emote === "sleep") {
+          drawPixelRect(104, 144, 24, 4, eye);
+        } else {
+          drawPixelRect(108, 142, 22, 3, eye);
+        }
+      }
+
+      function drawSceneDecor() {
+        ctx.save();
+        if (simulatorState.state === "listening") {
+          ctx.strokeStyle = "rgba(79, 209, 197, 0.7)";
+          ctx.lineWidth = 3;
+          ctx.beginPath();
+          ctx.arc(120, 120, 72 + (simulatorState.beat % 8), 0, Math.PI * 2);
+          ctx.stroke();
+        }
+
+        if (simulatorState.state === "thinking") {
+          for (let index = 0; index < 3; index += 1) {
+            ctx.fillStyle = index === simulatorState.beat % 3 ? "#7fdbff" : "rgba(127, 219, 255, 0.35)";
+            ctx.beginPath();
+            ctx.arc(96 + index * 18, 184, 5, 0, Math.PI * 2);
+            ctx.fill();
+          }
+        }
+
+        if (simulatorState.emote === "love" || simulatorState.state === "love") {
+          ctx.fillStyle = "#ff76b4";
+          ctx.font = "28px sans-serif";
+          ctx.fillText("♥", 110, 58);
+        }
+
+        if (simulatorState.emote === "sleep" || simulatorState.state === "sleep") {
+          ctx.fillStyle = "#9ab6ff";
+          ctx.font = "22px sans-serif";
+          ctx.fillText("Z", 154, 62);
+          ctx.fillText("z", 172, 46);
+        }
+        ctx.restore();
+      }
+
+      function render() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = simulatorState.mode === "work" ? "rgba(79, 209, 197, 0.08)" : "rgba(255, 140, 198, 0.10)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        drawSceneDecor();
+
+        if (simulatorState.mode === "work") {
+          drawRobot(simulatorState.emote);
+        } else {
+          drawUnicorn(simulatorState.emote);
+        }
+
+        modeBadge.textContent = simulatorState.mode.toUpperCase();
+        stateBadge.textContent = simulatorState.state;
+        subtitle.textContent = subtitleText.value;
+      }
+
+      autoRotateButton.addEventListener("click", () => {
+        simulatorState.autoRotate = !simulatorState.autoRotate;
+        renderButtons();
+      });
+
+      promptReactButton.addEventListener("click", () => {
+        simulatorState.emote = keywordReaction(promptText.value);
+        renderButtons();
+        render();
+      });
+
+      randomSceneButton.addEventListener("click", () => {
+        simulatorState.state = randomFrom(states);
+        simulatorState.emote = randomFrom(emotes);
+        renderButtons();
+        render();
+      });
+
+      subtitleText.addEventListener("input", render);
+
+      const idleScenes = ["neutral", "blink", "look_left", "look_right", "smile", "sleep"];
+      setInterval(() => {
+        simulatorState.beat = (simulatorState.beat + 1) % 12;
+        if (simulatorState.autoRotate && simulatorState.state === "idle" && simulatorState.beat % 4 === 0) {
+          simulatorState.emote = randomFrom(idleScenes);
+          renderButtons();
+        }
+        render();
+      }, 700);
+
+      renderButtons();
+      render();
+    </script>
+  </body>
+</html>

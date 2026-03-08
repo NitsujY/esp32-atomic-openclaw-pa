@@ -1,0 +1,26 @@
+{
+  "name": "openclaw-voice-relay-bridge",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsx watch src/server.ts",
+    "start": "node dist/server.js",
+    "pm2:start": "pm2 start ecosystem.config.cjs --env production",
+    "pm2:restart": "pm2 restart openclaw-bridge --update-env",
+    "pm2:stop": "pm2 delete openclaw-bridge",
+    "pm2:logs": "pm2 logs openclaw-bridge"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1",
+    "express": "^5.1.0"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.5.2",
+    "pm2": "^6.0.8",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
+  }
+}
